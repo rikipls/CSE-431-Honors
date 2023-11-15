@@ -3,7 +3,7 @@ use rand_chacha::ChaCha8Rng;
 
 use std::collections::{HashSet, BTreeSet};
 use std::error::Error;
-use std::time::{Instant};
+use std::time::Instant;
 use std::fs::File;
 use std::io::Write;
 
@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
 
     // Generate the random data
-    let data: Vec<usize> = (0..NUM_ELEMENTS).map(|_| rng.gen_range(0..NUM_ELEMENTS)).collect();
+    let data: Vec<usize> = (0..NUM_ELEMENTS).map(|_| rng.gen_range(0..usize::MAX)).collect();
 
     // Copies
     let mut hashmap_time: Vec<u128> = vec![0; NUM_ELEMENTS];
