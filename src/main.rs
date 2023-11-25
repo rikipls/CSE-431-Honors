@@ -1,10 +1,11 @@
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
-use std::collections::{HashSet, BTreeSet};
+use std::collections::{HashSet, BTreeSet, hash_map};
 use std::error::Error;
 use std::time::Instant;
 use std::fs::File;
+use std::hash::BuildHasher;
 use std::io::Write;
 
 const OUT_DIR: &str = "out";
@@ -12,6 +13,11 @@ const SEED: u64 = 431;
 const NUM_ELEMENTS: usize = 10_000_000;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    run::<hash_map::RandomState>("sip13")?;
+    run::<ahash::RandomState>("ahash")
+}
+
+fn run<Hasher: Default + BuildHasher>(out_path: &str) -> Result<(), Box<dyn Error>> {
     let mut rng = ChaCha8Rng::seed_from_u64(SEED);
 
     // Generate the random data
@@ -19,12 +25,12 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // Copies
     let mut hashmap_time: Vec<u128> = vec![0; NUM_ELEMENTS];
-    let mut btreemap_time: Vec<u128>  = vec![0; NUM_ELEMENTS];
+    let mut btreemap_time: Vec<u128> = vec![0; NUM_ELEMENTS];
     let mut total_hashmap_time = 0.0;
     let mut total_btreemap_time = 0.0;
 
-    let mut hash_map= HashSet::<usize>::new();
-    let mut btree_map = BTreeSet::<usize>::new();
+    let mut hash_map: HashSet<usize, Hasher> = HashSet::default();
+    let mut btree_map: BTreeSet<usize> = BTreeSet::new();
 
     let mut num_elements_processed = NUM_ELEMENTS;
 
@@ -58,8 +64,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let hash_times_str: Vec<String> = nonzero_hashmap_times_in_ns.iter().map(|n| format!("{n}")).collect();
     let tree_times_str: Vec<String> = nonzero_btreemap_times_in_ns.iter().map(|n| format!("{n}")).collect();
 
-    let mut f_hash = File::create(format!("{OUT_DIR}/hash.txt"))?;
-    let mut f_tree = File::create(format!("{OUT_DIR}/tree.txt"))?;
+    let mut f_hash = File::create(format!("{OUT_DIR}/{out_path}-hash.txt"))?;
+    let mut f_tree = File::create(format!("{OUT_DIR}/{out_path}-tree.txt"))?;
 
     writeln!(f_hash, "{}", hash_times_str.join("\n"))?;
     writeln!(f_tree, "{}", tree_times_str.join("\n"))?;
